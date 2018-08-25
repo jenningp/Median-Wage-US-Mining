@@ -1,0 +1,76 @@
+---
+title: "Mining, Quarrying and Oil and Gas median wages for US States"
+author: "Paula Jennings"
+date: "August 24, 2018"
+output: html_document
+---
+
+```{r load libraries,echo=F, warning=FALSE, message=F}
+library(tidycensus)
+library(sf)
+library(ggplot2)
+library(tigris)
+library(viridis)
+library(dplyr)
+library(tidyr)
+library(stringr)
+library(leaflet)
+library(readr)
+```
+You  must have an API key to obtain the US Census information and to use the library tidycensus.
+```{r get census median earnings data, echo=F, warning=FALSE, message=F}
+key <- read.csv("../key.txt")
+census_api_key(as.character(key[1,1]))
+
+#Industry by Median Earnings in the Past 12 Months (In 2016 Inflation-adjusted Dollars) for the Civilian Employed Population 16 Years and Over
+#Industry selected to view is the "004" and is "Agriculture, forestry, fishing and hunting, and mining: Mining, quarrying, and oil and gas extraction"
+#Getting data from the 2016 1-year ACS
+#The one-year ACS provides data for geographies with populations of 65,000 and greater.
+
+income <- get_acs(geography = "state", variables = "B24031_004", year = 2016, survey = "acs1", geometry = T, shift_geo = TRUE)
+
+```
+
+##Plot Distribution of Median Wage by State
+
+TO get an idea of what the shape of the wage data looks like for mining, quarrying and oil and gas industires for 2016, we will plot a histogram.
+
+```{r plot wage histogram, echo=FALSE, warning=F, message=FALSE}
+ggplot(income) + 
+  aes(x=estimate) +
+  geom_histogram(color="dark gray", fill="brown") +
+  labs(x="estimated meian income", y="number of states", 
+       title = "Distribution of Median Income by State in 2016",
+       subtitle = "Civilain hourly wage for mining, quarrying and oil and gas industries",
+       caption = "Data from US Census") +
+  theme_minimal()+
+  theme(legend.position = "none")
+```
+
+```{r mapping, echo=F, warning=F, message=F,include=FALSE}
+states <- states(cb=T)
+state_med_income <- geo_join(states, data.frame(income), "NAME", "NAME") 
+state_med_inc_clean <- subset(state_med_income, !is.na(estimate))
+
+
+pal <- colorNumeric("Oranges", domain=state_med_inc_clean$estimate)
+popup_sb <- paste0(state_med_inc_clean$NAME, " has a Median Income of: $",state_med_inc_clean$estimate)
+```
+##Plot of Median Income by State
+the following is a leaflet interactive map showing median income by state for these industries.
+```{r leaflet map, echo=F, warning=F, message=F}
+leaflet() %>%
+  addTiles() %>%
+  setView(-98.483330, 38.712046, zoom = 4) %>% 
+  addPolygons(data = state_med_inc_clean , 
+              fillColor = ~pal(state_med_inc_clean$estimate), 
+              fillOpacity = 0.7, 
+              weight = 0.2, 
+              smoothFactor = 0.2, 
+              popup = ~popup_sb) %>%
+  addLegend(pal = pal, 
+            values = state_med_inc_clean$estimate, 
+            position = "bottomright", 
+            title = "Median Income for Mining, Quarrying and Oil & Gas",
+            labFormat = labelFormat(prefix="$"))
+```
