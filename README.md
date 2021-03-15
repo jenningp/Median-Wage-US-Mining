@@ -3,4 +3,4 @@ This was an exercise I went through this course by Andrew Ba Tran https://learn.
 
 If you want to view the results and information nicely you can visit this as an io page like this https://jenningp.github.io/Median-Wage-US-Mining/ .
 
-And if you want to see what I built then this would be the html link https://jenningp.github.io/Median-Wage-US-Mining/blob/master/median_income_data_four_mining_quarrying_and_oil_and_gas.html .
+And if you want to see what I built then this would be the html link https://jenningp.github.io/Median-Wage-US-Mining/median_income_data_four_mining_quarrying_and_oil_and_gas.html . 
